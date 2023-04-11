@@ -86,6 +86,8 @@ class AzureDemoStack extends TerraformStack {
       destinationAddressPrefix: "203.0.113.0/24",
     });
 
+    
+
 
 
     const logAnalyticsWS = new LogAnalyticsWorkspace(this, "DemoLogAnalyticsWorkspace", {
@@ -126,7 +128,7 @@ class AzureDemoStack extends TerraformStack {
         }],
       },
       ingress:{
-        targetPort: 8433,
+        targetPort: 7433,
         trafficWeight:[{
           percentage: 100
         }]        
@@ -147,6 +149,7 @@ class AzureDemoStack extends TerraformStack {
         }],
       },
       ingress:{
+        externalEnabled: true,
         targetPort: 8433,
         trafficWeight:[{
           percentage: 100
@@ -162,6 +165,10 @@ class AzureDemoStack extends TerraformStack {
       resourceGroupName: rg.name,
       skuName: "Developer_1",
       publicNetworkAccessEnabled: false,
+      virtualNetworkType: "Internal",
+      virtualNetworkConfiguration: {
+        subnetId: privateSubnet.id
+      }
     });
 
     const apiManagementExternal = new ApiManagement(this, "ApiManagementExternal", {
