@@ -12,6 +12,13 @@ import { SqlManagedDatabase } from "@cdktf/provider-azurerm/lib/sql-managed-data
 import { SqlManagedInstance } from "@cdktf/provider-azurerm/lib/sql-managed-instance";
 import { ApiManagement } from "@cdktf/provider-azurerm/lib/api-management";
 import { ApiManagementApi } from "@cdktf/provider-azurerm/lib/api-management-api";
+import { AppService } from "@cdktf/provider-azurerm/lib/app-service";
+import { AppServicePlan } from "@cdktf/provider-azurerm/lib/app-service-plan";
+import { LinuxFunctionApp } from "@cdktf/provider-azurerm/lib/linux-function-app";
+import { ServicePlan } from "@cdktf/provider-azurerm/lib/service-plan";
+import { LinuxWebApp } from "@cdktf/provider-azurerm/lib/linux-web-app";
+import { AppServiceSourceControlA, AppServiceSourceControlGithubActionConfigurationCodeConfigurationOutputReference } from "@cdktf/provider-azurerm/lib/app-service-source-control";
+import { appServiceSourceControl } from "@cdktf/provider-azurerm";
 
 
 class AzureDemoStack extends TerraformStack {
@@ -195,7 +202,7 @@ class AzureDemoStack extends TerraformStack {
       apiManagementName: apiManagementExternal.name,
       revision: "1",
       serviceUrl: backendForReact.ingress.fqdn,
-    })
+    });
 
     const backendDatabaseInstance = new SqlManagedInstance(this, "BackendDatabaseInstance", {
       location: rg.location,
@@ -220,6 +227,30 @@ class AzureDemoStack extends TerraformStack {
       location: rg.location,
       name: "BackendForReactDatabase",
       sqlManagedInstanceId: backendDatabaseInstance.id,    
+    });
+
+    const servicePlan = new ServicePlan(this, "ServicePlan", {
+      resourceGroupName: rg.name,
+      location: rg.location,
+      name: "ServicePlan",
+      osType: "Linux",
+      skuName: "P1v2",
+    })
+
+    const reactApp = new LinuxWebApp(this, "ReactApp", {
+      resourceGroupName: rg.name,
+      location: rg.location,
+      name: "ReactApp",
+      appSettings: {
+        "WEBSITE_RUN_FROM_PACKAGE":"1"
+      },
+      zipDeployFile: "./react/counter-app.zip",
+      servicePlanId: servicePlan.id,
+      siteConfig:{
+        applicationStack:{
+          nodeVersion: "18-lts",
+        },
+      },
     });
   }
 }
