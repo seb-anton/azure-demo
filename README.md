@@ -97,7 +97,7 @@ We have 3 services set up in our solution:
 
 ## Databases
 
-> There is one managed DB instance that hosts one database for each of the backend services.
+There is one managed DB instance that hosts one database for each of the backend services.
 
 ---
 
