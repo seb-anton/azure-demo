@@ -27,6 +27,8 @@ class AzureDemoStack extends TerraformStack {
       name: "DemoRG",
     });
 
+    // Networking
+
     const vNet = new VirtualNetwork(this, "Vnet", {
       resourceGroupName: rg.name,     
       location: rg.location,
@@ -55,13 +57,15 @@ class AzureDemoStack extends TerraformStack {
       addressPrefixes: ["10.0.0.192/26"],
     });
 
+    // Security groups
+
     const backendBankSg = new NetworkSecurityGroup(this, "BackendBankSecurityGroup", {
       resourceGroupName: rg.name,
       location: rg.location,
       name: "BackendBankSecurityGroup",
     });
 
-    const backendBankSecRuleInbound = new NetworkSecurityRule(this, "BackendBankSecurityRuleInbound", {
+    new NetworkSecurityRule(this, "BackendBankSecurityRuleInbound", {
       resourceGroupName: rg.name,
       name: "BackendBankSecurityRuleInbound",
       networkSecurityGroupName: backendBankSg.name,
@@ -75,7 +79,7 @@ class AzureDemoStack extends TerraformStack {
       destinationAddressPrefix: "203.0.113.0/24",
     });
 
-    const backendBankSecRuleOutbound = new NetworkSecurityRule(this, "BackendBankSecurityRuleOutbound", {
+    new NetworkSecurityRule(this, "BackendBankSecurityRuleOutbound", {
       resourceGroupName: rg.name,
       name: "BackendBankSecurityRuleOutbound",
       networkSecurityGroupName: backendBankSg.name,
@@ -89,15 +93,17 @@ class AzureDemoStack extends TerraformStack {
       destinationAddressPrefix: "203.0.113.0/24",
     });
 
-    
+    // TODO: add groups/rules for access to the public subnet and the DB subnet
 
-
+    // Logging
 
     const logAnalyticsWS = new LogAnalyticsWorkspace(this, "LogAnalyticsWorkspace", {
       resourceGroupName: rg.name,
       location: rg.location,
       name: "LogAnalyticsWorkspace",
     });
+
+    // Backend Container Apps
 
     const containerAppEnvPublic = new ContainerAppEnvironment(this, "ContainerAppEnvPublic", {
       resourceGroupName: rg.name,
@@ -114,8 +120,6 @@ class AzureDemoStack extends TerraformStack {
       logAnalyticsWorkspaceId: logAnalyticsWS.id,
       infrastructureSubnetId: privateSubnet.id,      
     });
-
-
 
     const backendBankWrapper = new ContainerApp(this, "BackendBankWrapperApp", {
       resourceGroupName: rg.name,
@@ -160,6 +164,8 @@ class AzureDemoStack extends TerraformStack {
       },
     });
 
+    // API Configuration
+
     const apiManagementInternal = new ApiManagement(this, "ApiManagementInternal", {
       resourceGroupName: rg.name,
       location: rg.location,
@@ -184,7 +190,7 @@ class AzureDemoStack extends TerraformStack {
       publicNetworkAccessEnabled: true,
     });
 
-    const internalApi = new ApiManagementApi(this, "InternalApi", {
+    new ApiManagementApi(this, "InternalApi", {
       resourceGroupName: rg.name,
       name: "InternalApi",
       apiManagementName: apiManagementInternal.name,
@@ -218,12 +224,16 @@ class AzureDemoStack extends TerraformStack {
       xmlContent: '<rate-limit calls="10" renewal-period="1"></rate-limit>'
     });
 
+    // TODO finish API configuration for all methods and add API operation for the webhook implementation
+
+    // Databases
+
     const backendDatabaseInstance = new SqlManagedInstance(this, "BackendDatabaseInstance", {
       resourceGroupName: rg.name,
       location: rg.location,
       name: "BackendDatabaseInstance",
       administratorLogin: "admin",
-      administratorLoginPassword: "ThisShouldNotBeHere!",
+      administratorLoginPassword: "ThisShouldNotBeHere!", // TODO put this in a secret store and retrieve it from there
       licenseType: "BasePrice",
       skuName: "GP_Gen5",
       storageSizeInGb: 20,
@@ -231,17 +241,19 @@ class AzureDemoStack extends TerraformStack {
       vcores: 1,
     });
 
-    const backendBankDatabase = new SqlManagedDatabase(this, "BackendBankDatabase", {
+    new SqlManagedDatabase(this, "BackendBankDatabase", {
       location: rg.location,
       name: "BackendBankDatabase",
       sqlManagedInstanceId: backendDatabaseInstance.id,    
     });
 
-    const backendForReactDatabase = new SqlManagedDatabase(this, "BackendForReactDatabase", {
+    new SqlManagedDatabase(this, "BackendForReactDatabase", {
       location: rg.location,
       name: "BackendForReactDatabase",
       sqlManagedInstanceId: backendDatabaseInstance.id,    
     });
+
+    // React Web App
 
     const servicePlan = new ServicePlan(this, "ServicePlan", {
       resourceGroupName: rg.name,
@@ -251,7 +263,7 @@ class AzureDemoStack extends TerraformStack {
       skuName: "P1v2",
     })
 
-    const reactApp = new LinuxWebApp(this, "ReactApp", {
+    new LinuxWebApp(this, "ReactApp", {
       resourceGroupName: rg.name,
       location: rg.location,
       name: "ReactApp",
