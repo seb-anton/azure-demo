@@ -22,7 +22,11 @@ export class AzureDemoStack extends TerraformStack {
     super(scope, id);
 
     new AzurermProvider(this, "azureProvider", {
-      features: {},
+      features: {
+        resourceGroup: {
+          preventDeletionIfContainsResources: false,
+        },
+      },
     });
 
     const rg = new ResourceGroup(this, "DemoRG", {
@@ -290,7 +294,7 @@ export class AzureDemoStack extends TerraformStack {
       appSettings: {
         WEBSITE_RUN_FROM_PACKAGE: "1",
       },
-      zipDeployFile: "./react/counter-app.zip",
+      zipDeployFile: "react/counter-app.zip",
       servicePlanId: servicePlan.id,
       siteConfig: {
         applicationStack: {
