@@ -19,8 +19,8 @@
 > Terraform CLI (1.2+)<br>
 > Node.js and npm v16+<br>
 > azure CLI<br>
-> Typescript v4.4
-> cdktf
+> Typescript v4.4<br>
+> cdktf<br>
 
 detailed informations to get started with CDKTF could be found here: https://developer.hashicorp.com/terraform/tutorials/cdktf/cdktf-install
 
