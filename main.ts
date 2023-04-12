@@ -12,14 +12,10 @@ import { SqlManagedDatabase } from "@cdktf/provider-azurerm/lib/sql-managed-data
 import { SqlManagedInstance } from "@cdktf/provider-azurerm/lib/sql-managed-instance";
 import { ApiManagement } from "@cdktf/provider-azurerm/lib/api-management";
 import { ApiManagementApi } from "@cdktf/provider-azurerm/lib/api-management-api";
-import { AppService } from "@cdktf/provider-azurerm/lib/app-service";
-import { AppServicePlan } from "@cdktf/provider-azurerm/lib/app-service-plan";
-import { LinuxFunctionApp } from "@cdktf/provider-azurerm/lib/linux-function-app";
 import { ServicePlan } from "@cdktf/provider-azurerm/lib/service-plan";
 import { LinuxWebApp } from "@cdktf/provider-azurerm/lib/linux-web-app";
-import { AppServiceSourceControlA, AppServiceSourceControlGithubActionConfigurationCodeConfigurationOutputReference } from "@cdktf/provider-azurerm/lib/app-service-source-control";
-import { appServiceSourceControl } from "@cdktf/provider-azurerm";
-
+import { ApiManagementApiOperationPolicy } from "@cdktf/provider-azurerm/lib/api-management-api-operation-policy";
+import { ApiManagementApiOperation } from "@cdktf/provider-azurerm/lib/api-management-api-operation";
 
 class AzureDemoStack extends TerraformStack {
   constructor(scope: Construct, id: string) {
@@ -27,15 +23,15 @@ class AzureDemoStack extends TerraformStack {
 
 
     const rg = new ResourceGroup(this, "DemoRG", {
-      name: "DemoRG",
       location: "uksouth",
+      name: "DemoRG",
     });
 
-    const vNet = new VirtualNetwork(this, "DemoVnet", {
-      location: rg.location,
-      addressSpace: ["10.0.0.0/24"],
-      name: "DemoVNet",
+    const vNet = new VirtualNetwork(this, "Vnet", {
       resourceGroupName: rg.name,     
+      location: rg.location,
+      name: "VNet",
+      addressSpace: ["10.0.0.0/24"],
     });
 
     const publicSubnet = new Subnet(this, "PublicSubnet", {
@@ -60,8 +56,8 @@ class AzureDemoStack extends TerraformStack {
     });
 
     const backendBankSg = new NetworkSecurityGroup(this, "BackendBankSecurityGroup", {
-      location: rg.location,
       resourceGroupName: rg.name,
+      location: rg.location,
       name: "BackendBankSecurityGroup",
     });
 
@@ -97,38 +93,38 @@ class AzureDemoStack extends TerraformStack {
 
 
 
-    const logAnalyticsWS = new LogAnalyticsWorkspace(this, "DemoLogAnalyticsWorkspace", {
-      location: rg.location,
+    const logAnalyticsWS = new LogAnalyticsWorkspace(this, "LogAnalyticsWorkspace", {
       resourceGroupName: rg.name,
-      name: "DemoLogAnalyticsWorkspace",
+      location: rg.location,
+      name: "LogAnalyticsWorkspace",
     });
 
-    const containerAppEnvPublic = new ContainerAppEnvironment(this, "DemoContainerAppEnvPublic", {
-      location: rg.location,
-      name: "DemoContainerAppEnvPublic",
+    const containerAppEnvPublic = new ContainerAppEnvironment(this, "ContainerAppEnvPublic", {
       resourceGroupName: rg.name,
+      location: rg.location,
+      name: "ContainerAppEnvPublic",
       logAnalyticsWorkspaceId: logAnalyticsWS.id,
       infrastructureSubnetId: publicSubnet.id, 
     });
 
-    const containerAppEnvPrivate = new ContainerAppEnvironment(this, "DemoContainerAppEnvPrivate", {
-      location: rg.location,
-      name: "DemoContainerAppEnvPrivate",
+    const containerAppEnvPrivate = new ContainerAppEnvironment(this, "ContainerAppEnvPrivate", {
       resourceGroupName: rg.name,
+      location: rg.location,
+      name: "ContainerAppEnvPrivate",
       logAnalyticsWorkspaceId: logAnalyticsWS.id,
       infrastructureSubnetId: privateSubnet.id,      
     });
 
 
 
-    const backendBankWrapper = new ContainerApp(this, "DemoBackendBankWrapper", {
+    const backendBankWrapper = new ContainerApp(this, "BackendBankWrapperApp", {
       resourceGroupName: rg.name,
+      name: "BackendBankWrapperApp",
       containerAppEnvironmentId: containerAppEnvPrivate.id,
-      name: "backendBankWrapper",
       revisionMode: "Single",
       template: {
         container:[{
-          name: "DemoBackendBankWrapper",
+          name: "BackendBankWrapperContainer",
           image: "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest",
           cpu: 0.25,
           memory: "0.5Gi"
@@ -142,14 +138,14 @@ class AzureDemoStack extends TerraformStack {
       },
     });
 
-    const backendForReact = new ContainerApp(this, "DemoBackendForReact", {
+    const backendForReact = new ContainerApp(this, "BackendForReactApp", {
       resourceGroupName: rg.name,
+      name: "BackendForReactApp",
       containerAppEnvironmentId: containerAppEnvPublic.id,
-      name: "backendForReact",
       revisionMode: "Single",
       template: {
         container:[{
-          name: "DemoBackendForReact",
+          name: "BackendForReactContainer",
           image: "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest",
           cpu: 0.25,
           memory: "0.5Gi"
@@ -165,11 +161,11 @@ class AzureDemoStack extends TerraformStack {
     });
 
     const apiManagementInternal = new ApiManagement(this, "ApiManagementInternal", {
+      resourceGroupName: rg.name,
       location: rg.location,
       name: "ApiManagementInternal",
       publisherEmail: "sebastian.anton@live.de",
       publisherName: "Sebastian",
-      resourceGroupName: rg.name,
       skuName: "Developer_1",
       publicNetworkAccessEnabled: false,
       virtualNetworkType: "Internal",
@@ -179,11 +175,11 @@ class AzureDemoStack extends TerraformStack {
     });
 
     const apiManagementExternal = new ApiManagement(this, "ApiManagementExternal", {
+      resourceGroupName: rg.name,
       location: rg.location,
       name: "ApiManagementExternal",
       publisherEmail: "sebastian.anton@live.de",
       publisherName: "Sebastian",
-      resourceGroupName: rg.name,
       skuName: "Developer_1",
       publicNetworkAccessEnabled: true,
     });
@@ -204,9 +200,27 @@ class AzureDemoStack extends TerraformStack {
       serviceUrl: backendForReact.ingress.fqdn,
     });
 
-    const backendDatabaseInstance = new SqlManagedInstance(this, "BackendDatabaseInstance", {
-      location: rg.location,
+    const apiOperationExternal = new ApiManagementApiOperation(this, "ApiOperationExternal", {
       resourceGroupName: rg.name,
+      apiManagementName: apiManagementExternal.name,
+      apiName: externalApi.name,
+      displayName: "GET",
+      method: "GET",
+      operationId: "demo-get",
+      urlTemplate: "/"
+    });
+
+    new ApiManagementApiOperationPolicy(this, "RateLimit", {
+      resourceGroupName: rg.name,
+      apiManagementName: apiManagementExternal.name,
+      apiName: externalApi.name,
+      operationId: apiOperationExternal.id,
+      xmlContent: '<rate-limit calls="10" renewal-period="1"></rate-limit>'
+    });
+
+    const backendDatabaseInstance = new SqlManagedInstance(this, "BackendDatabaseInstance", {
+      resourceGroupName: rg.name,
+      location: rg.location,
       name: "BackendDatabaseInstance",
       administratorLogin: "admin",
       administratorLoginPassword: "ThisShouldNotBeHere!",
