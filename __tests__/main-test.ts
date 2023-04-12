@@ -20,7 +20,7 @@ describe("Unit testing using assertions", () => {
     ).toHaveResource(Subnet);
   });
 
-  it("should contain a subnet with the name PrivateSubnet", () => {
+  it("should contain a subnet with the name private_subnet", () => {
     expect(
       Testing.synthScope((scope) => {
         new NetworkSetup(
@@ -32,6 +32,6 @@ describe("Unit testing using assertions", () => {
           })
         );
       })
-    ).toHaveResourceWithProperties(Subnet, { name: "PrivateSubnet" });
+    ).toHaveResourceWithProperties(Subnet, { name: "private_subnet" });
   });
 });

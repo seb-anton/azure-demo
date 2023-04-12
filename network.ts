@@ -15,29 +15,29 @@ export class NetworkSetup extends Construct {
     this.vNet = new VirtualNetwork(this, "Vnet", {
       resourceGroupName: rg.name,
       location: rg.location,
-      name: "VNet",
-      addressSpace: ["10.0.0.0/24"],
+      name: "vnet",
+      addressSpace: ["10.0.0.0/16"],
     });
 
     this.publicSubnet = new Subnet(this, "PublicSubnet", {
       resourceGroupName: rg.name,
-      name: "PublicSubnet",
+      name: "public_subnet",
       virtualNetworkName: this.vNet.name,
-      addressPrefixes: ["10.0.0.0/25"],
+      addressPrefixes: ["10.0.0.0/17"],
     });
 
     this.privateSubnet = new Subnet(this, "PrivateSubnet", {
       resourceGroupName: rg.name,
-      name: "PrivateSubnet",
+      name: "private_subnet",
       virtualNetworkName: this.vNet.name,
-      addressPrefixes: ["10.0.0.128/26"],
+      addressPrefixes: ["10.0.128.0/18"],
     });
 
     this.databaseSubnet = new Subnet(this, "DatabaseSubnet", {
       resourceGroupName: rg.name,
-      name: "DatabaseSubnet",
+      name: "database_subnet",
       virtualNetworkName: this.vNet.name,
-      addressPrefixes: ["10.0.0.192/26"],
+      addressPrefixes: ["10.0.192.0/18"],
     });
   }
 }

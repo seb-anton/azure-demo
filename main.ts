@@ -15,14 +15,19 @@ import { LinuxWebApp } from "@cdktf/provider-azurerm/lib/linux-web-app";
 import { ApiManagementApiOperationPolicy } from "@cdktf/provider-azurerm/lib/api-management-api-operation-policy";
 import { ApiManagementApiOperation } from "@cdktf/provider-azurerm/lib/api-management-api-operation";
 import { NetworkSetup } from "./network";
+import { AzurermProvider } from "@cdktf/provider-azurerm/lib/provider";
 
 export class AzureDemoStack extends TerraformStack {
   constructor(scope: Construct, id: string) {
     super(scope, id);
 
+    new AzurermProvider(this, "azureProvider", {
+      features: {},
+    });
+
     const rg = new ResourceGroup(this, "DemoRG", {
       location: "uksouth",
-      name: "DemoRG",
+      name: "demo_rg",
     });
 
     // Networking
@@ -37,18 +42,18 @@ export class AzureDemoStack extends TerraformStack {
       {
         resourceGroupName: rg.name,
         location: rg.location,
-        name: "BackendBankSecurityGroup",
+        name: "backend_bank_security_group",
       }
     );
 
     new NetworkSecurityRule(this, "BackendBankSecurityRuleInbound", {
       resourceGroupName: rg.name,
-      name: "BackendBankSecurityRuleInbound",
+      name: "backend_bank_security_rule_inbound",
       networkSecurityGroupName: backendBankSg.name,
       priority: 100,
       direction: "Inbound",
       access: "Allow",
-      protocol: "TCP",
+      protocol: "Tcp",
       sourcePortRange: "*",
       destinationPortRange: "*",
       sourceAddressPrefix: "203.0.113.0/24",
@@ -57,12 +62,12 @@ export class AzureDemoStack extends TerraformStack {
 
     new NetworkSecurityRule(this, "BackendBankSecurityRuleOutbound", {
       resourceGroupName: rg.name,
-      name: "BackendBankSecurityRuleOutbound",
+      name: "backend_bank_security_rule_outbound",
       networkSecurityGroupName: backendBankSg.name,
       priority: 100,
       direction: "Outbound",
       access: "Allow",
-      protocol: "TCP",
+      protocol: "Tcp",
       sourcePortRange: "*",
       destinationPortRange: "*",
       sourceAddressPrefix: "203.0.113.0/24",
@@ -79,7 +84,7 @@ export class AzureDemoStack extends TerraformStack {
       {
         resourceGroupName: rg.name,
         location: rg.location,
-        name: "LogAnalyticsWorkspace",
+        name: "log-analytics-workspace",
       }
     );
 
@@ -91,7 +96,7 @@ export class AzureDemoStack extends TerraformStack {
       {
         resourceGroupName: rg.name,
         location: rg.location,
-        name: "ContainerAppEnvPublic",
+        name: "container-app-env-public",
         logAnalyticsWorkspaceId: logAnalyticsWS.id,
         infrastructureSubnetId: network.publicSubnet.id,
       }
@@ -103,7 +108,7 @@ export class AzureDemoStack extends TerraformStack {
       {
         resourceGroupName: rg.name,
         location: rg.location,
-        name: "ContainerAppEnvPrivate",
+        name: "container-app-env-private",
         logAnalyticsWorkspaceId: logAnalyticsWS.id,
         infrastructureSubnetId: network.privateSubnet.id,
       }
@@ -111,13 +116,13 @@ export class AzureDemoStack extends TerraformStack {
 
     const backendBankWrapper = new ContainerApp(this, "BackendBankWrapperApp", {
       resourceGroupName: rg.name,
-      name: "BackendBankWrapperApp",
+      name: "backend-bank-wrapper-app",
       containerAppEnvironmentId: containerAppEnvPrivate.id,
       revisionMode: "Single",
       template: {
         container: [
           {
-            name: "BackendBankWrapperContainer",
+            name: "backend-bank-wrapper-container",
             image:
               "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest",
             cpu: 0.25,
@@ -138,13 +143,13 @@ export class AzureDemoStack extends TerraformStack {
 
     const backendForReact = new ContainerApp(this, "BackendForReactApp", {
       resourceGroupName: rg.name,
-      name: "BackendForReactApp",
+      name: "backend-for-react-app",
       containerAppEnvironmentId: containerAppEnvPublic.id,
       revisionMode: "Single",
       template: {
         container: [
           {
-            name: "BackendForReactContainer",
+            name: "backend-for-react-container",
             image:
               "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest",
             cpu: 0.25,
@@ -171,11 +176,11 @@ export class AzureDemoStack extends TerraformStack {
       {
         resourceGroupName: rg.name,
         location: rg.location,
-        name: "ApiManagementInternal",
+        name: "api-management-internal",
         publisherEmail: "sebastian.anton@live.de",
         publisherName: "Sebastian",
         skuName: "Developer_1",
-        publicNetworkAccessEnabled: false,
+        // publicNetworkAccessEnabled: false,
         virtualNetworkType: "Internal",
         virtualNetworkConfiguration: {
           subnetId: network.privateSubnet.id,
@@ -189,7 +194,7 @@ export class AzureDemoStack extends TerraformStack {
       {
         resourceGroupName: rg.name,
         location: rg.location,
-        name: "ApiManagementExternal",
+        name: "api-management-external",
         publisherEmail: "sebastian.anton@live.de",
         publisherName: "Sebastian",
         skuName: "Developer_1",
@@ -199,7 +204,7 @@ export class AzureDemoStack extends TerraformStack {
 
     new ApiManagementApi(this, "InternalApi", {
       resourceGroupName: rg.name,
-      name: "InternalApi",
+      name: "internal_api",
       apiManagementName: apiManagementInternal.name,
       revision: "1",
       serviceUrl: backendBankWrapper.ingress.fqdn,
@@ -207,7 +212,7 @@ export class AzureDemoStack extends TerraformStack {
 
     const externalApi = new ApiManagementApi(this, "ExternalApi", {
       resourceGroupName: rg.name,
-      name: "ExternalApi",
+      name: "external_api",
       apiManagementName: apiManagementExternal.name,
       revision: "1",
       serviceUrl: backendForReact.ingress.fqdn,
@@ -245,26 +250,26 @@ export class AzureDemoStack extends TerraformStack {
       {
         resourceGroupName: rg.name,
         location: rg.location,
-        name: "BackendDatabaseInstance",
-        administratorLogin: "admin",
+        name: "backend-database-instance",
+        administratorLogin: "Masteruser",
         administratorLoginPassword: "ThisShouldNotBeHere!", // TODO put this in a secret store and retrieve it from there
         licenseType: "BasePrice",
         skuName: "GP_Gen5",
-        storageSizeInGb: 20,
+        storageSizeInGb: 32,
         subnetId: network.databaseSubnet.id,
-        vcores: 1,
+        vcores: 4,
       }
     );
 
     new SqlManagedDatabase(this, "BackendBankDatabase", {
       location: rg.location,
-      name: "BackendBankDatabase",
+      name: "backend_bank_database",
       sqlManagedInstanceId: backendDatabaseInstance.id,
     });
 
     new SqlManagedDatabase(this, "BackendForReactDatabase", {
       location: rg.location,
-      name: "BackendForReactDatabase",
+      name: "backend_for_react_database",
       sqlManagedInstanceId: backendDatabaseInstance.id,
     });
 
@@ -273,7 +278,7 @@ export class AzureDemoStack extends TerraformStack {
     const servicePlan = new ServicePlan(this, "ServicePlan", {
       resourceGroupName: rg.name,
       location: rg.location,
-      name: "ServicePlan",
+      name: "service_plan",
       osType: "Linux",
       skuName: "P1v2",
     });
@@ -281,7 +286,7 @@ export class AzureDemoStack extends TerraformStack {
     new LinuxWebApp(this, "ReactApp", {
       resourceGroupName: rg.name,
       location: rg.location,
-      name: "ReactApp",
+      name: "azure-demo-react-app-santon",
       appSettings: {
         WEBSITE_RUN_FROM_PACKAGE: "1",
       },
@@ -298,4 +303,4 @@ export class AzureDemoStack extends TerraformStack {
 
 const app = new App();
 new AzureDemoStack(app, "azure-demo");
-//app.synth();
+app.synth();
