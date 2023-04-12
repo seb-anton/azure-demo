@@ -2,6 +2,8 @@
 
 ## General setup
 Schematic overview
+
+![Overview](overview.png)
 ## Networking
 We have a virtual network in which we place our services.
 
@@ -71,6 +73,17 @@ Also the sizing of the DB instances needs to be checked and read replicas added 
 ### Redundancy
 
 Currently the DBs run on one instance that is something that probably should be changed to decrease the blast radius in the error case(instance restore from snapshot)
+
+### Testing
+
+The current tests are not very meaningful and need to improved for instance everything that mustn't be public should be tested accordingly.
+This should probably done by moving the the ressources from the stack to meaningful constructs like for the networking to improve testability.
+
+### Deployment
+
+Curently there is no deployment process in place, this could be a good starting point if github actions would be the tool of choice: https://github.com/hashicorp/terraform-cdk-action
+
+
 
 
 
