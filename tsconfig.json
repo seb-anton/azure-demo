@@ -1,5 +1,7 @@
 {
   "compilerOptions": {
+    "outDir": "dist",
+    "ignoreDeprecations": "5.0",
     "alwaysStrict": true,
     "charset": "utf8",
     "declaration": true,
