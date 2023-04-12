@@ -1,4 +1,51 @@
+
+
 # azure-demo
+
+- [azure-demo](#azure-demo)
+  - [How to deploy](#how-to-deploy)
+    - [Prerequisites](#prerequisites)
+    - [Deployment steps](#deployment-steps)
+  - [General setup](#general-setup)
+  - [Networking](#networking)
+    - [Public Subnet](#public-subnet)
+    - [Private Subnet](#private-subnet)
+    - [Database Subnet](#database-subnet)
+  - [Services](#services)
+    - [React Web App](#react-web-app)
+    - [Backend service for React](#backend-service-for-react)
+    - [Backend bank wrapper](#backend-bank-wrapper)
+  - [Databases](#databases)
+  - [Improvements](#improvements)
+    - [Secrets management](#secrets-management)
+    - [Scalability/performance](#scalabilityperformance)
+    - [Redundancy](#redundancy)
+    - [Testing](#testing)
+    - [Deployment](#deployment)
+
+
+## How to deploy
+
+### Prerequisites
+
+Terraform CLI (1.2+)
+Node.js and npm v16+
+azure CLI
+
+### Deployment steps
+
+You need to be logged in to Azure with your Azure CLI.
+
+After cloning the repo run these commands in the cloned folder:
+
+```
+npm install
+npm test
+cdktf synth
+cdktf deploy
+```
+
+
 
 ## General setup
 Schematic overview
