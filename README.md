@@ -2,26 +2,13 @@
 
 # azure-demo
 
-- [azure-demo](#azure-demo)
   - [How to deploy](#how-to-deploy)
-    - [Prerequisites](#prerequisites)
-    - [Deployment steps](#deployment-steps)
   - [General setup](#general-setup)
   - [Networking](#networking)
-    - [Public Subnet](#public-subnet)
-    - [Private Subnet](#private-subnet)
-    - [Database Subnet](#database-subnet)
   - [Services](#services)
-    - [React Web App](#react-web-app)
-    - [Backend service for React](#backend-service-for-react)
-    - [Backend bank wrapper](#backend-bank-wrapper)
   - [Databases](#databases)
   - [Improvements](#improvements)
-    - [Secrets management](#secrets-management)
-    - [Scalability/performance](#scalabilityperformance)
-    - [Redundancy](#redundancy)
-    - [Testing](#testing)
-    - [Deployment](#deployment)
+
 
 ---
 
